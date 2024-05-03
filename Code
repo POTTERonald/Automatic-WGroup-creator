@@ -1,0 +1,68 @@
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.service import Service
+
+# Function to create a WhatsApp group
+def create_whatsapp_group(group_name, participants):
+    # Configure the Chrome webdriver options
+    options = webdriver.ChromeOptions()
+    options.add_argument('--ignore-certificate-errors')
+    options.add_argument('--ignore-ssl-errors')
+    options.add_argument("--disable-extensions")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    # Initialize the Chrome webdriver
+    driver_service = Service(ChromeDriverManager().install())
+    driver = webdriver.Chrome(service=driver_service, options=options)
+    driver.get("https://web.whatsapp.com")
+
+    # Wait for the user to scan the QR code and login
+    input("Please scan the QR code and press Enter once logged in...")
+
+    print("Logged in. Proceeding to create group...")
+
+    # Wait for the new chat button to be clickable
+    new_chat_btn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, '//div[@title="New chat"]')))
+    new_chat_btn.click()
+
+    # Wait for the new group button to be clickable
+    new_group_btn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, '//div[@title="New group"]')))
+    new_group_btn.click()
+
+    print("Creating new group...")
+
+    # Find the input field to search for participants
+    search_input = WebDriverWait(driver, 60).until(EC.presence_of_element_located((By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/span/div/div/div[1]/div/div/div[2]/input')))
+    
+    print("Search box found. Proceeding to add participants...")
+
+    # Search and select participants
+    for participant in participants:
+        search_input.send_keys(participant)
+        participant_element = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, f'//span[@title="{participant}"]')))
+        participant_element.click()
+
+    # Click on the create group button (skipping group subject)
+    next_btn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/span/div/div/span/div')))
+    next_btn.click()
+
+    print("Group participants added. Proceeding to name the group...")
+
+    # Click on the create button again to finalize
+    create_group_btn = WebDriverWait(driver, 60).until(EC.element_to_be_clickable((By.XPATH, '//*[@id="app"]/div/div[2]/div[2]/div[1]/span/div/span/span/div/div/span/div/div')))
+    create_group_btn.click()
+
+    print("Group created successfully!")
+
+    # Close the browser window
+    driver.quit()
+
+# Example usage
+group_name = "Test Group2"
+participants = ["Yashwardhan IITM Civil", "Adarsh Bihar IITM Civil","Vishnu Vijayaraj IITM Civil"]
+create_whatsapp_group(group_name, participants)
